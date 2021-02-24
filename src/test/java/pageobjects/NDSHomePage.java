@@ -67,6 +67,9 @@ public class NDSHomePage extends Driver {
     @FindBy(xpath = "//header/div[1]/button[3]")
     WebElement refreshContentButton;
 
+    @FindBy(xpath = ".v-data-footer__icons-after .v-icon")
+    WebElement nextPageButton;
+
     @FindBy(css = ".v-btn__loader")
     WebElement refreshContentButtonAnimated;
 
@@ -121,9 +124,17 @@ public class NDSHomePage extends Driver {
         return i;
     }
 
-    public String getJobStatusAccordingToRowNumber(int rowNum) {
+    public String getJobStatusAccordingToRowNumber(int rowNum) throws InterruptedException {
         By jobStatus = By.cssSelector("tbody > tr:nth-child(" + rowNum + ") > .status-column");
+        while (!driver.findElement(jobStatus).isDisplayed()){
+            clickNextPage();
+            Thread.sleep(2000);     //Unfortunately
+        }
         return driver.findElement(jobStatus).getText();
+    }
+
+    public void clickNextPage(){
+        nextPageButton.click();
     }
 
     public void refreshTableData() {
