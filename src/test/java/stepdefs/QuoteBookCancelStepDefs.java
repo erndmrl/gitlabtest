@@ -11,6 +11,7 @@ import io.cucumber.java.en.Given;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.entity.StringEntity;
@@ -25,14 +26,13 @@ import testprojectcore.driverutil.PageObjectFactory;
 import testprojectcore.http.apachehttpclient.ApacheHttpClient;
 import testprojectcore.http.apachehttpclient.HttpCallBuilder;
 import testprojectcore.testcontext.TestContext;
+import testprojectcore.util.DateTimeUtil;
 import testprojectcore.util.Helper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -70,10 +70,16 @@ public class QuoteBookCancelStepDefs {
         List<NameValuePair> headers = new ArrayList<>();
         headers.add(new BasicNameValuePair("Authorization", UseBearerToken.INSTANCE.getBearerToken()));
         quoteRequest = JacksonObjectMapper.mapJsonFileToObject(QuoteRequest.class, "src/test/java/apicalls/payloads/quote/SingleScheduledAnyOtherDayPickup.json");
+        for (int i = 0; i < quoteRequest.tasks.size(); i++) {
+            if (quoteRequest.tasks.get(i).requestedWindow != null) {
+                quoteRequest.tasks.get(i).requestedWindow.from = DateTimeUtil.addDaysToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 1);
+                quoteRequest.tasks.get(i).requestedWindow.to = DateTimeUtil.addDaysToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 2);
+            }
+        }
         String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(quoteRequest)));
         HttpResponse response =
                 ApacheHttpClient.sendRequest(
-                        HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 10000));
+                        HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 35000));
         clientResponse = response;
     }
 
@@ -269,8 +275,8 @@ public class QuoteBookCancelStepDefs {
                             if (quoteRequest.tasks.get(finalI).type.equals("pickup") && quoteRequest.tasks.get(finalI).requestedWindow.from != null
                                     && quoteRequest.tasks.get(finalI).requestedWindow.to != null) {
                                 assertAll("Comparison of ProcessedDates parameters under payload",
-                                        () -> assertEquals(quoteRequest.tasks.get(finalI).requestedWindow.from, quoteResponse.payload.processedDates.requestedPickupStart),
-                                        () -> assertEquals(quoteRequest.tasks.get(finalI).requestedWindow.to, quoteResponse.payload.processedDates.requestedPickupEnd)
+                                        () -> assertEquals(DateUtils.truncate(quoteRequest.tasks.get(finalI).requestedWindow.from, Calendar.SECOND), DateUtils.truncate(quoteResponse.payload.processedDates.requestedPickupStart, Calendar.SECOND)),
+                                        () -> assertEquals(DateUtils.truncate(quoteRequest.tasks.get(finalI).requestedWindow.to, Calendar.SECOND), DateUtils.truncate(quoteResponse.payload.processedDates.requestedPickupEnd, Calendar.SECOND))
                                 );
                             }
                         }
@@ -281,8 +287,8 @@ public class QuoteBookCancelStepDefs {
                             if (quoteRequest.tasks.get(finalI).type.equals("delivery") && quoteRequest.tasks.get(finalI).requestedWindow.from != null
                                     && quoteRequest.tasks.get(finalI).requestedWindow.to != null) {
                                 assertAll("Comparison of ProcessedDates parameters under payload",
-                                        () -> assertEquals(quoteRequest.tasks.get(finalI).requestedWindow.from, quoteResponse.payload.processedDates.requestedDeliveryStart),
-                                        () -> assertEquals(quoteRequest.tasks.get(finalI).requestedWindow.to, quoteResponse.payload.processedDates.requestedDeliveryEnd)
+                                        () -> assertEquals(DateUtils.truncate(quoteRequest.tasks.get(finalI).requestedWindow.from, Calendar.SECOND), quoteResponse.payload.processedDates.requestedDeliveryStart),
+                                        () -> assertEquals(DateUtils.truncate(quoteRequest.tasks.get(finalI).requestedWindow.to, Calendar.SECOND), quoteResponse.payload.processedDates.requestedDeliveryEnd)
                                 );
                             }
                         }
@@ -557,8 +563,8 @@ public class QuoteBookCancelStepDefs {
                             if (quoteRequest.tasks.get(finalI).type.equals("pickup") && quoteRequest.tasks.get(finalI).requestedWindow.from != null
                                     && quoteRequest.tasks.get(finalI).requestedWindow.to != null) {
                                 assertAll("Comparison of ProcessedDates parameters under payload",
-                                        () -> assertEquals(quoteRequest.tasks.get(finalI).requestedWindow.from, bookResponse.payload.processedDates.requestedPickupStart),
-                                        () -> assertEquals(quoteRequest.tasks.get(finalI).requestedWindow.to, bookResponse.payload.processedDates.requestedPickupEnd)
+                                        () -> assertEquals(DateUtils.truncate(quoteRequest.tasks.get(finalI).requestedWindow.from, Calendar.SECOND), DateUtils.truncate(bookResponse.payload.processedDates.requestedPickupStart, Calendar.SECOND)),
+                                        () -> assertEquals(DateUtils.truncate(quoteRequest.tasks.get(finalI).requestedWindow.to, Calendar.SECOND), DateUtils.truncate(bookResponse.payload.processedDates.requestedPickupEnd, Calendar.SECOND))
                                 );
                             }
                         }
@@ -569,8 +575,8 @@ public class QuoteBookCancelStepDefs {
                             if (quoteRequest.tasks.get(finalI).type.equals("delivery") && quoteRequest.tasks.get(finalI).requestedWindow.from != null
                                     && quoteRequest.tasks.get(finalI).requestedWindow.to != null) {
                                 assertAll("Comparison of ProcessedDates parameters under payload",
-                                        () -> assertEquals(quoteRequest.tasks.get(finalI).requestedWindow.from, bookResponse.payload.processedDates.requestedDeliveryStart),
-                                        () -> assertEquals(quoteRequest.tasks.get(finalI).requestedWindow.to, bookResponse.payload.processedDates.requestedDeliveryEnd)
+                                        () -> assertEquals(DateUtils.truncate(quoteRequest.tasks.get(finalI).requestedWindow.from, Calendar.SECOND), bookResponse.payload.processedDates.requestedDeliveryStart),
+                                        () -> assertEquals(DateUtils.truncate(quoteRequest.tasks.get(finalI).requestedWindow.to, Calendar.SECOND), bookResponse.payload.processedDates.requestedDeliveryEnd)
                                 );
                             }
                         }
@@ -738,6 +744,12 @@ public class QuoteBookCancelStepDefs {
         List<NameValuePair> headers = new ArrayList<>();
         headers.add(new BasicNameValuePair("Authorization", UseBearerToken.INSTANCE.getBearerToken()));
         quoteRequest = JacksonObjectMapper.mapJsonFileToObject(QuoteRequest.class, "src/test/java/apicalls/payloads/quote/SingleScheduledSameDayDelivery.json");
+        for (int i = 0; i < quoteRequest.tasks.size(); i++) {
+            if (quoteRequest.tasks.get(i).requestedWindow != null) {
+                quoteRequest.tasks.get(i).requestedWindow.from = DateTimeUtil.addHoursToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 1);
+                quoteRequest.tasks.get(i).requestedWindow.to = DateTimeUtil.addHoursToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 4);
+            }
+        }
         String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(quoteRequest)));
         HttpResponse response =
                 ApacheHttpClient.sendRequest(
@@ -750,6 +762,12 @@ public class QuoteBookCancelStepDefs {
         List<NameValuePair> headers = new ArrayList<>();
         headers.add(new BasicNameValuePair("Authorization", UseBearerToken.INSTANCE.getBearerToken()));
         quoteRequest = JacksonObjectMapper.mapJsonFileToObject(QuoteRequest.class, "src/test/java/apicalls/payloads/quote/SingleScheduledDeliveryWindowsSameDay.json");
+        for (int i = 0; i < quoteRequest.tasks.size(); i++) {
+            if (quoteRequest.tasks.get(i).requestedWindow != null) {
+                quoteRequest.tasks.get(i).requestedWindow.from = DateTimeUtil.addHoursToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 1);
+                quoteRequest.tasks.get(i).requestedWindow.to = DateTimeUtil.addHoursToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 4);
+            }
+        }
         String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(quoteRequest)));
         HttpResponse response =
                 ApacheHttpClient.sendRequest(
@@ -794,6 +812,12 @@ public class QuoteBookCancelStepDefs {
     @And("Take an authorization token and request to Book for Single Drop - Immediate Booking, Quote & Book - Scheduled today")
     public void takeAnAuthorizationTokenAndRequestToBookForSingleDropImmediateBookingQuoteBookScheduledToday() throws Exception {
         quoteRequest = JacksonObjectMapper.mapJsonFileToObject(QuoteRequest.class, "src/test/java/apicalls/payloads/book/ImmediateBookingQuoteBookScheduledToday.json");
+        for (int i = 0; i < quoteRequest.tasks.size(); i++) {
+            if (quoteRequest.tasks.get(i).requestedWindow != null) {
+                quoteRequest.tasks.get(i).requestedWindow.to = DateTimeUtil.addHoursToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 1);
+                quoteRequest.tasks.get(i).requestedWindow.from = DateTimeUtil.addHoursToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 4);
+            }
+        }
         RestAssured.baseURI = "https://api2-test.noqu.delivery";
         RestAssured.basePath = "/v2";
 

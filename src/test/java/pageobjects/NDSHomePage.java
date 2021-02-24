@@ -1,13 +1,16 @@
 package pageobjects;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import testprojectcore.core.Driver;
 import testprojectcore.core.DriverUtils;
+import testprojectcore.util.Helper;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -55,7 +58,7 @@ public class NDSHomePage extends Driver {
     @FindBy(xpath = "//div[@class='v-btn__content'][contains(.,'30')]")
     WebElement thirtiethDayOfMonth_3;
 
-    @FindBy(xpath = "(//div[@class='v-btn__content'][contains(.,'30')])[2]")
+    @FindBy(xpath = "(//div[@class='v-btn__content'])[105]")
     WebElement thirtiethDayOfMonth_4;
 
     @FindBy(xpath = "(//div[@class='v-btn__content'][contains(.,'28')])[4]")
@@ -67,7 +70,7 @@ public class NDSHomePage extends Driver {
     @FindBy(xpath = "//header/div[1]/button[3]")
     WebElement refreshContentButton;
 
-    @FindBy(xpath = ".v-data-footer__icons-after .v-icon")
+    @FindBy(css = ".v-data-footer__icons-after .v-icon")
     WebElement nextPageButton;
 
     @FindBy(css = ".v-btn__loader")
@@ -118,6 +121,11 @@ public class NDSHomePage extends Driver {
             }
         }
         if (!flag) {
+            while (nextPageButton.isDisplayed() && nextPageButton.isEnabled()) {
+                DriverUtils.waitUntil(ExpectedConditions.elementToBeClickable(nextPageButton), 5, driver);
+                clickNextPage();
+                Helper.waitForJavascriptToLoad(driver);
+            }
             goToNextMonth();
             locateTheRowThatASpecificJobIdIsIn(jobId);
         }
@@ -134,7 +142,9 @@ public class NDSHomePage extends Driver {
     }
 
     public void clickNextPage() {
-        nextPageButton.click();
+        if (nextPageButton.isEnabled()) {
+            DriverUtils.getActions(driver).moveToElement(nextPageButton).click().build().perform();
+        } else throw new ElementClickInterceptedException("Failed to click next page button");
     }
 
     public void refreshTableData() {
@@ -144,9 +154,18 @@ public class NDSHomePage extends Driver {
     }
 
     public void goToDateWhereJobSupposedToBeIn(Date jobDate) throws Exception {
-        String uiFormat = new SimpleDateFormat("dd/MM/yyyy").format(jobDate);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        String apiDateStr = sdf.format(jobDate);
+        Date apiDate = sdf.parse(apiDateStr);
+        apiDate = DateUtils.truncate(apiDate, Calendar.SECOND);
+        apiDate = DateUtils.truncate(apiDate, Calendar.MINUTE);
+        String uiDateStr = dateIndicator.getText();
+        String uiDateStrEnd = (uiDateStr.substring(uiDateStr.lastIndexOf("to ") + 3)).trim();
+        Date uiDateEnd = sdf.parse(uiDateStrEnd);
+        uiDateEnd = DateUtils.truncate(uiDateEnd, Calendar.SECOND);
+        uiDateEnd = DateUtils.truncate(uiDateEnd, Calendar.MINUTE);
 
-        while (!dateIndicator.getText().contains(uiFormat)) {
+        while (uiDateEnd.before(apiDate)) {
             DriverUtils.waitUntil(getTheSizeOfTheTable() > 1, 10, driver);  //Wait until the table is populated
             DriverUtils.waitUntil(ExpectedConditions.elementToBeClickable(dateTimePicker), 5, driver);
             dateTimePicker.click();
@@ -169,6 +188,12 @@ public class NDSHomePage extends Driver {
             DriverUtils.waitUntil(ExpectedConditions.elementToBeClickable(dateTimePickerSubmit), 5, driver);
             dateTimePickerSubmit.click();
             Thread.sleep(500);  //Unfortunately
+
+            uiDateStr = dateIndicator.getText();
+            uiDateStrEnd = (uiDateStr.substring(uiDateStr.lastIndexOf("to ") + 3)).trim();
+            uiDateEnd = sdf.parse(uiDateStrEnd);
+            uiDateEnd = DateUtils.truncate(uiDateEnd, Calendar.SECOND);
+            uiDateEnd = DateUtils.truncate(uiDateEnd, Calendar.MINUTE);
         }
     }
 

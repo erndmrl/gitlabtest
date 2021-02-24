@@ -1,6 +1,7 @@
 @browser
 Feature: Quote, Book, Cancel
 
+  @wip
   Scenario: Single Pickup Only With No Time Intervals
 
     * Take an authorization token and request to Quote for Single ASAP Pickup
@@ -140,7 +141,7 @@ Feature: Quote, Book, Cancel
     * Verify the status of the quoted job is "Cancelled" on the UI
 
 
-  @wip
+
   Scenario: Single Drop - Immediate Booking, Quote & Book - ASAP
 
     * Take an authorization token and request to Book for Single Drop - Immediate Booking, Quote & Book - ASAP
