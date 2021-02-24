@@ -160,8 +160,7 @@ Feature: Quote, Book, Cancel
   Scenario: Single Drop - Immediate Booking, Quote & Book - Scheduled today
 
     * Take an authorization token and request to Book for Single Drop - Immediate Booking, Quote & Book - Scheduled today
-    * Quote Response: Http response status code should be 201
-    * Quote Response: Check response parameters
+    * Book Response: Http response status code should be 201
     * Log in to the UI with following credentials
       | username         | password |
       | sysadmin@lineten | test     |
@@ -176,8 +175,7 @@ Feature: Quote, Book, Cancel
   Scenario: Single Drop - Immediate Booking, Quote & Book - Scheduled Any Other Day
 
     * Take an authorization token and request to Book for Single Drop - Immediate Booking, Quote & Book - Scheduled Any Other Day
-    * Quote Response: Http response status code should be 201
-    * Quote Response: Check response parameters
+    * Book Response: Http response status code should be 201
     * Log in to the UI with following credentials
       | username         | password |
       | sysadmin@lineten | test     |

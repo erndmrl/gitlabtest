@@ -126,14 +126,14 @@ public class NDSHomePage extends Driver {
 
     public String getJobStatusAccordingToRowNumber(int rowNum) throws InterruptedException {
         By jobStatus = By.cssSelector("tbody > tr:nth-child(" + rowNum + ") > .status-column");
-        while (!driver.findElement(jobStatus).isDisplayed()){
+        while (!driver.findElement(jobStatus).isDisplayed()) {
             clickNextPage();
             Thread.sleep(2000);     //Unfortunately
         }
         return driver.findElement(jobStatus).getText();
     }
 
-    public void clickNextPage(){
+    public void clickNextPage() {
         nextPageButton.click();
     }
 
@@ -162,8 +162,7 @@ public class NDSHomePage extends Driver {
                     thirtiethDayOfMonth_2.click();
                 } catch (ElementNotInteractableException ene) {
                     thirtiethDayOfMonth_3.click();
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     thirtiethDayOfMonth_4.click();
                 }
             }
@@ -191,8 +190,7 @@ public class NDSHomePage extends Driver {
                 thirtiethDayOfMonth_2.click();
             } catch (ElementNotInteractableException ene) {
                 thirtiethDayOfMonth_3.click();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 thirtiethDayOfMonth_4.click();
             }
         }
