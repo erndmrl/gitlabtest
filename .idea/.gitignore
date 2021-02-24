@@ -1,8 +1,10 @@
 # Default ignored files
 /shelf/
 /workspace.xml
+
 # Datasource local storage ignored files
 /../../../../../../:\Users\dmrle\IdeaProjects\test-automation\.idea/dataSources/
 /dataSources.local.xml
+
 # Editor-based HTTP Client requests
 /httpRequests/

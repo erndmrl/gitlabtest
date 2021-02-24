@@ -10,7 +10,6 @@ import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import testprojectcore.core.interfaces.Callable;
 
-import static testprojectcore.core.DriverManager.driver;
 import static testprojectcore.core.DriverManager.timeOutInSeconds;
 
 

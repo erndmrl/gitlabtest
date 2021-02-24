@@ -8,11 +8,6 @@ import org.jeasy.random.FieldPredicates;
 import org.jeasy.random.randomizers.number.IntegerRandomizer;
 
 
-//import com.torus.acquirerservice.dto.AcquirerRequestDto;
-//import com.torus.merchantservice.dto.MerchantRequestDto;
-//import com.torus.terminalservice.dto.TerminalDto;
-
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

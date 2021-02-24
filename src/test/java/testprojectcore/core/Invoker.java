@@ -1,6 +1,5 @@
 package testprojectcore.core;
 
-import testprojectcore.core.DriverUtils;
 import testprojectcore.core.interfaces.Callable;
 import org.openqa.selenium.WebElement;
 
