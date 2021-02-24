@@ -48,6 +48,7 @@ cmake-build-*/
 
 # IntelliJ
 out/
+/out/
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
@@ -121,3 +122,23 @@ buildNumber.properties
 # Ignore Allure result files inside project
 *-container.json
 *-result.json
+
+# User-specific stuff:
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/vcs.xml
+.idea/jsLibraryMappings.xml
+
+# Sensitive or high-churn files:
+.idea/dataSources.ids
+.idea/dataSources.xml
+.idea/dataSources.local.xml
+.idea/sqlDataSources.xml
+.idea/dynamic.xml
+.idea/uiDesigner.xml
+
+
+# Others
+/.idea/
+
