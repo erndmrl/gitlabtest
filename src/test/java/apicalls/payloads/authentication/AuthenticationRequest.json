@@ -1,0 +1,6 @@
+{
+  "client_id":"f14c615e-66a7-449f-b482-24ab6de0b399",
+  "client_secret":"a9e8be0f-7df7-4d0c-8a64-d4ef459a5ae3",
+  "grant_type":"client_credentials",
+  "scope":"nds_api"
+}

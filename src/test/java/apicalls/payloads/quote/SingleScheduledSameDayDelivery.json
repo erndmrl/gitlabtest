@@ -1,0 +1,123 @@
+{
+  "TransportType": [
+    "car",
+    "Van",
+    "Bike",
+    "Motorbike",
+    "walker"
+  ],
+  "CallbackUrl": "",
+  "Notes": "",
+  "ClientRef": "AL-Sorted-labels",
+  "Tags": [
+    "refrigerated",
+    "Controlled_drug"
+  ],
+  "Flags": [],
+  "Labels": [],
+  "DeliveryProvider": [
+    "greenway_couriers"
+  ],
+  "CallbackUrl": "https://en55m1hbpojzscq.m.pipedream.net",
+  "Tasks": [
+    {
+      "Type": "pickup",
+      "RequestedWindow": {
+        "From": "2021-09-10T18:00:00",
+        "To": "2021-09-10T18:30:00"
+      },
+      "Location": {
+        "LocationType": "store_location",
+        "Address": {
+          "CompanyName": "L10",
+          "Address1": "116 St Martins Lane",
+          "Address2": "Charing Cross",
+          "Postcode": "WC2N 4BD",
+          "City": "London",
+          "County": "London",
+          "Country": "United Kingdom",
+          "Notes": ""
+        },
+        "Persons": [
+          {
+            "FirstName": "Automation",
+            "LastName": "Pickup",
+            "Phone": "01111111111",
+            "Email": "automation@test.com",
+            "Notes": "Pickup person note"
+          }
+        ],
+        "Keep": false
+      },
+      "Notes": "2 Items, 1 Fridge Line, 1 CD",
+      "Items": [
+        {
+          "Ref": "1091",
+          "Package": {
+            "Size": "M"
+          },
+          "Notes": "This is Pickup task item notes - 1"
+        },
+        {
+          "Ref": "1092",
+          "Package": {
+            "Size": "M"
+          },
+          "Notes": "This is Pickup task item notes - 2"
+        }
+      ]
+    },
+    {
+      "Type": "delivery",
+      "RequestedWindow": {
+        "From": "2021-09-10T19:00:00",
+        "To": "2021-09-10T19:30:00"
+      },
+      "Tags": [],
+      "Labels": [],
+      "Flags": [
+        "scan_barcode"
+      ],
+      "Location": {
+        "LocationType": "customer_location",
+        "Address": {
+          "CompanyName": "OCS",
+          "Address1": "44 Southside",
+          "Address2": "Clapham",
+          "Postcode": "SW4 9BU",
+          "City": "London",
+          "County": "Norfolk",
+          "Country": "United Kingdom",
+          "Notes": ""
+        },
+        "Persons": [
+          {
+            "FirstName": "Automation",
+            "LastName": "Delivery",
+            "Phone": "01111111111",
+            "Email": "automation@test.com",
+            "Notes": "Delivery person note"
+          }
+        ]
+      },
+      "Notes": "",
+      "Items": [
+        {
+          "Ref": "2398",
+          "Package": {
+            "Size": "L"
+          },
+          "Notes": "This is delivery task item notes - 1"
+        },
+        {
+          "Ref": "2399",
+          "Package": {
+            "Size": "L"
+          },
+          "Notes": "This is Delivery task item notes - 2"
+        }
+      ]
+    }
+  ],
+  "SimulateJob": false
+}

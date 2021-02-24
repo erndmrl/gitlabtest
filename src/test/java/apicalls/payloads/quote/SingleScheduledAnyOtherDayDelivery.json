@@ -1,0 +1,132 @@
+{
+  "TransportType": [
+    "car",
+    "Van",
+    "Bike",
+    "Motorbike",
+    "walker"
+  ],
+  "CallbackUrl": "a",
+  "Notes": "",
+  "ClientRef": "NDSV2506",
+  "Tags": [
+    "refrigerated",
+    "Controlled_drug"
+  ],
+  "DeliveryProvider": [
+    "greenway_couriers"
+  ],
+  "Flags": [
+    "scan_barcode"
+  ],
+  "Labels": [],
+  "Tasks": [
+    {
+      "Type": "pickup",
+      "RequestedWindow": {
+        "From": "2021-09-09T18:00:00",
+        "To": "2021-09-09T18:30:00"
+      },
+      "TransportType": [
+        "car",
+        "van"
+      ],
+      "Tags": [
+        "controlled_drug"
+      ],
+      "Flags": [
+        "scan_barcode"
+      ],
+      "Labels": [],
+      "Notes": "Callbacks",
+      "Location": {
+        "LocationType": "store_location",
+        "Address": {
+          "CompanyName": "L10",
+          "Address1": "640 Ajax Ave",
+          "Address2": "Charing Cross",
+          "Postcode": "Sl1 4DH",
+          "City": "Slough",
+          "County": "Berkshire",
+          "Country": "United Kingdom",
+          "Notes": "A note, another note, and some special characters;_*:!'^^'%&+{[?]-}"
+        },
+        "Persons": [
+          {
+            "FirstName": "Automation",
+            "LastName": "Pickup",
+            "Phone": "01111111111",
+            "Email": "automation@test.com",
+            "Notes": "Person notes pickup"
+          }
+        ],
+        "Keep": false
+      },
+      "Notes": "A note, another note, and some special characters;_*:!'^^'%&+{[?]-}",
+      "Items": [
+        {
+          "Ref": "111110",
+          "Package": {
+            "Size": "M"
+          },
+          "Notes": "CD , FL"
+        }
+      ]
+    },
+    {
+      "Type": "delivery",
+      "TransportType": [
+        "car",
+        "van"
+      ],
+      "Tags": [
+        "controlled_drug"
+      ],
+      "Flags": [
+        "scan_barcode"
+      ],
+      "Labels": [],
+      "Notes": "111",
+      "Location": {
+        "LocationType": "customer_location",
+        "Address": {
+          "CompanyName": "OCS",
+          "Address1": "2a Alpha St N",
+          "Address2": "",
+          "Postcode": "SL1 1RB",
+          "City": "Slough",
+          "County": "Berkshire",
+          "Country": "United Kingdom",
+          "Notes": "A note, another note, and some special characters;_*:!'^^'%&+{[?]-}"
+        },
+        "Persons": [
+          {
+            "FirstName": "Automation",
+            "LastName": "Delivery",
+            "Phone": "02078818506",
+            "Email": "automation@test.com",
+            "Notes": "Person Notes - Delivery"
+          }
+        ]
+      },
+      "Notes": "Some notes ;_*:!'^^'%&+{[?]-}",
+      "Items": [
+        {
+          "Ref": "1",
+          "Package": {
+            "Size": "S"
+          },
+          "Notes": "Notes for the first item"
+        },
+        {
+          "Ref": "2",
+          "Package": {
+            "Size": "M"
+          },
+          "Notes": "This is Delivery task item notes - 2"
+        }
+      ]
+    }
+  ],
+  "SimulateJob": false
+}

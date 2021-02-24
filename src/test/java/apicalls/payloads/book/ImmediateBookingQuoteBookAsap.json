@@ -1,0 +1,116 @@
+{
+
+  "TransportType": [
+    "car",
+    "van"
+  ],
+  "CallbackUrl": "",
+  "Notes": "",
+  "ClientRef": "NDSV2506",
+  "Tags": [
+    "controlled_drug"
+  ],
+  "Flags": [
+    "scan_barcode"
+  ],
+  "Labels": [
+  ],
+  "Tasks": [
+    {
+      "Type": "pickup",
+
+      "TransportType": [
+        "car",
+        "van"
+      ],
+      "Tags": [
+        "controlled_drug"
+      ],
+      "Flags": [
+        "scan_barcode"
+      ],
+      "Notes": "Callbacks",
+      "Location": {
+        "LocationType": "store_location",
+        "Address": {
+          "CompanyName": "L10",
+          "Address1": "640 Ajax Ave",
+          "Address2": "",
+          "Postcode": "Sl1 4DH",
+          "City": "Slough",
+          "County": "Berkshire",
+          "Country": "United Kingdom",
+          "Notes": ""
+        },
+        "Persons": [
+          {
+            "FirstName": "Sam",
+            "LastName": "Adam",
+            "Phone": "01789765544",
+            "Email": "adam@adam.com",
+            "Notes": "New Person notes"
+          }
+        ],
+        "Keep": false
+      },
+      "Notes": "2 Items, 1 Fridge Line, 1 CD",
+      "Items": [
+        {
+          "Ref": "111110",
+          "Package": {
+            "Size": "M"
+          },
+          "Notes": "CD , FL"
+
+        }
+      ]
+    },
+    {
+      "Type": "delivery",
+      "TransportType": [
+        "car",
+        "van"
+      ],
+      "Tags": [
+        "controlled_drug"
+      ],
+      "Flags": [
+        "scan_barcode"
+      ],
+      "Notes": "111",
+      "Location": {
+        "LocationType": "customer_location",
+        "Address": {
+          "CompanyName": "OCS",
+          "Address1": "2a Alpha St N",
+          "Address2": "",
+          "Postcode": "SL1 1RB",
+          "City": "Slough",
+          "County": "Berkshire",
+          "Country": "United Kingdom",
+          "Notes": ""
+        },
+        "Persons": [
+          {
+            "FirstName": "Cody",
+            "LastName": "Ans",
+            "Phone": "02078818506",
+            "Email": "Sooper@ablneten.com",
+            "Notes": "Person Notes - Delivery"
+          }
+        ]
+      },
+      "Notes": "",
+      "Items": [
+        {
+          "Ref": "111110",
+          "Package": {
+            "Size": "M"
+          },
+          "Notes": "CD , FL"
+        }
+      ]
+    }
+  ],
+  "SimulateJob": false
+}

@@ -1,0 +1,11 @@
+#Please enter one of the following for browser parameter: "Chrome", "Firefox", "Safari", "Edge", "Opera"
+#Please enter one of the following for platform parameter: "Android", "ios", "web"
+
+platform = web
+browser =
+env = test
+driverPathChromeForWindows = src/test/resources/webdriver/chromedriver.exe
+driverPathFirefoxForWindows = src/test/resources/webdriver/geckodriver.exe
+driverPathFirefoxForLinux = Add gecko driver here for linux
+driverPathChromeForLinux = src/test/resources/webdriver/chromedriver
+
