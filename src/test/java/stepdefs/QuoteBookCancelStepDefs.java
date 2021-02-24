@@ -351,7 +351,7 @@ public class QuoteBookCancelStepDefs {
         String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(bookRequest)));
         HttpResponse response =
                 ApacheHttpClient.sendRequest(
-                        HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_BookURL"), postingString, headers, 10000));
+                        HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_BookURL"), postingString, headers, 20000));
         clientResponse = response;
     }
 

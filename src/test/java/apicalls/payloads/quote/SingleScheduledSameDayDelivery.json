@@ -40,7 +40,7 @@
         },
         "Persons": [
           {
-            "FirstName": "Automation",
+            "FirstName": "Automated",
             "LastName": "Pickup",
             "Phone": "01111111111",
             "Email": "automation@test.com",
@@ -92,8 +92,8 @@
         },
         "Persons": [
           {
-            "FirstName": "Automation",
-            "LastName": "Delivery",
+            "FirstName": "Automated",
+            "LastName": "Test",
             "Phone": "01111111111",
             "Email": "automation@test.com",
             "Notes": "Delivery person note"

@@ -42,7 +42,7 @@
         },
         "Persons": [
           {
-            "FirstName": "Automation",
+            "FirstName": "Automated",
             "LastName": "Pickup",
             "Phone": "020987334500",
             "Email": "Barathi@lineten.com",
@@ -95,8 +95,8 @@
         },
         "Persons": [
           {
-            "FirstName": "Automation",
-            "LastName": "Delivery",
+            "FirstName": "Automated",
+            "LastName": "Test",
             "Phone": "02078818506",
             "Email": "Sooper@ablneten.com",
             "Notes": "Person Notes - Delivery"
