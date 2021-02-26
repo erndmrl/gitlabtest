@@ -147,7 +147,7 @@ public class QuoteBookCancelStepDefs {
 
         assertEquals(quoteRequest.tasks.size(), quoteResponse.payload.tasks.size());
 
-        int supportedTransportTypeIdentifiedQuoteObjectNumber = 0;
+        List<Integer> supportedTransportTypeIdentifiedQuoteObjectNumber = new ArrayList<>();
         boolean supportAnyTransportType = false;
         String[] deliveryProvidersThatSupportAnyTypeOfTransportType = UseParsers.extractAJsonArrayFromJsonFile("src/test/resources/misc/deliveryProviderProperties.json", "DeliveryProvidersThatSupportAnyTypeOfTransportType").split(",", -1);
         for (int i = 0; i < deliveryProvidersThatSupportAnyTypeOfTransportType.length; i++) {
@@ -178,10 +178,13 @@ public class QuoteBookCancelStepDefs {
                 for (String supportedTransportType : supportedTransportTypesForSpecificDeliveryProvider) {
                     if (quoteRequest.transportType.get(t).equals(supportedTransportType)) {
                         assertEquals("quoted", quoteResponse.payload.quotes.get(t).quoteStatus);
-                        supportedTransportTypeIdentifiedQuoteObjectNumber = t;
+                        supportedTransportTypeIdentifiedQuoteObjectNumber.add(t, t);
+                    } else if (!quoteRequest.transportType.get(t).equals(supportedTransportType) && !Arrays.asList(supportedTransportTypesForSpecificDeliveryProvider).contains(quoteRequest.transportType.get(t))) {
+                        supportedTransportTypeIdentifiedQuoteObjectNumber.add(t, -1);
                     }
                 }
-                while (t != supportedTransportTypeIdentifiedQuoteObjectNumber) {
+
+                if (t != supportedTransportTypeIdentifiedQuoteObjectNumber.get(t)) {
                     assertEquals("error", quoteResponse.payload.quotes.get(t).quoteStatus);
                 }
             }
@@ -474,7 +477,7 @@ public class QuoteBookCancelStepDefs {
 
         assertEquals(quoteRequest.tasks.size(), bookResponse.payload.tasks.size());
 
-        int supportedTransportTypeIdentifiedQuoteObjectNumber = 0;
+        List<Integer> supportedTransportTypeIdentifiedQuoteObjectNumber = new ArrayList<>();
         boolean supportAnyTransportType = false;
         String[] deliveryProvidersThatSupportAnyTypeOfTransportType = UseParsers.extractAJsonArrayFromJsonFile("src/test/resources/misc/deliveryProviderProperties.json", "DeliveryProvidersThatSupportAnyTypeOfTransportType").split(",", -1);
         for (int i = 0; i < deliveryProvidersThatSupportAnyTypeOfTransportType.length; i++) {
@@ -505,10 +508,13 @@ public class QuoteBookCancelStepDefs {
                 for (String supportedTransportType : supportedTransportTypesForSpecificDeliveryProvider) {
                     if (quoteRequest.transportType.get(t).equals(supportedTransportType)) {
                         assertEquals("booked", bookResponse.payload.quotes.get(t).quoteStatus);
-                        supportedTransportTypeIdentifiedQuoteObjectNumber = t;
+                        supportedTransportTypeIdentifiedQuoteObjectNumber.add(t, t);
+                    } else if (!quoteRequest.transportType.get(t).equals(supportedTransportType) && !Arrays.asList(supportedTransportTypesForSpecificDeliveryProvider).contains(quoteRequest.transportType.get(t))) {
+                        supportedTransportTypeIdentifiedQuoteObjectNumber.add(t, -1);
                     }
                 }
-                while (t != supportedTransportTypeIdentifiedQuoteObjectNumber) {
+
+                if (t != supportedTransportTypeIdentifiedQuoteObjectNumber.get(t)) {
                     assertEquals("error", bookResponse.payload.quotes.get(t).quoteStatus);
                 }
             }
@@ -866,7 +872,7 @@ public class QuoteBookCancelStepDefs {
         String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(quoteRequest)));
         HttpResponse response =
                 ApacheHttpClient.sendRequest(
-                        HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 10000));
+                        HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 20000));
         clientResponse = response;
     }
 

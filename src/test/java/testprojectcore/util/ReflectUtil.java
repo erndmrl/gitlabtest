@@ -9,6 +9,16 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class ReflectUtil {
 
+
+    /**
+     * Get field count for both parent class and inner classes. Note that you have to use field.setAccessible(true);
+     * in case of private variables
+     *
+     * @author Eren Demirel
+     *
+     * @param clazz Name of the outer class
+     * @return fieldCount
+     */
     public static <T> int getFieldCount(Class<T> clazz) throws NoSuchFieldException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
 
         int fieldCount = 0;

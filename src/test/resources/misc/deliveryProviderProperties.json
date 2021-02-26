@@ -1,20 +1,28 @@
 {
   "test": {
+
     "DeliveryProvidersThatSupportAnyTypeOfTransportType": [
       "onfleet",
       "greenway_couriers"
     ],
+
     "door_dash.availableTransportTypes": [
       "bike",
       "car",
       "walker"
     ],
+
     "addison_lee.availableTransportTypes": [
       "bike",
       "motorbike",
       "car",
       "minivan",
       "van"
+    ],
+
+    "stuart_uk.availableTransportTypes": [
+      "bike",
+      "car"
     ]
   }
 }
