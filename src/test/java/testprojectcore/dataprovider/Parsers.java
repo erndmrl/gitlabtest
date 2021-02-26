@@ -225,12 +225,14 @@ enum Parsers {
         @Override
         String execute(String filePathFromContentRoot, String requestedJsonArray) throws IOException {
             File jsonFile = new File(filePathFromContentRoot);
+            JSONObject jsonObject = null;
             JSONArray jsonArray = null;
             if (jsonFile.exists()) {
                 InputStream is = new FileInputStream(filePathFromContentRoot);
                 String jsonTxt = IOUtils.toString(is, StandardCharsets.UTF_8);
                 orgJsonObject = new JSONObject(jsonTxt);
-                jsonArray = orgJsonObject.getJSONArray(requestedJsonArray);
+                jsonObject = orgJsonObject.getJSONObject(EnvironmentDataProvider.ENVIRONMENTVARIABLE.getEnvironmentVariable());
+                jsonArray = jsonObject.getJSONArray(requestedJsonArray);
             }
             if (jsonArray != null) {
                 return jsonArray.toString();

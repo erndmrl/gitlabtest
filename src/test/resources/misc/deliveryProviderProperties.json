@@ -1,17 +1,15 @@
 {
-  "DeliveryProvidersThatSupportAnyTypeOfTransportType": [
-    "onfleet",
-    "greenway_couriers"
-  ],
-  "DoorDash": {
-    "AVAILABLE_TRANSPORT_TYPES": [
+  "test": {
+    "DeliveryProvidersThatSupportAnyTypeOfTransportType": [
+      "onfleet",
+      "greenway_couriers"
+    ],
+    "door_dash.availableTransportTypes": [
       "bike",
       "car",
       "walker"
-    ]
-  },
-  "AddisonLee": {
-    "AVAILABLE_TRANSPORT_TYPES": [
+    ],
+    "addison_lee.availableTransportTypes": [
       "bike",
       "motorbike",
       "car",

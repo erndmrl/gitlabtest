@@ -147,6 +147,7 @@ public class QuoteBookCancelStepDefs {
 
         assertEquals(quoteRequest.tasks.size(), quoteResponse.payload.tasks.size());
 
+        int supportedTransportTypeIdentifiedQuoteObjectNumber = 0;
         boolean supportAnyTransportType = false;
         String[] deliveryProvidersThatSupportAnyTypeOfTransportType = UseParsers.extractAJsonArrayFromJsonFile("src/test/resources/misc/deliveryProviderProperties.json", "DeliveryProvidersThatSupportAnyTypeOfTransportType").split(",", -1);
         for (int i = 0; i < deliveryProvidersThatSupportAnyTypeOfTransportType.length; i++) {
@@ -154,6 +155,8 @@ public class QuoteBookCancelStepDefs {
             deliveryProvidersThatSupportAnyTypeOfTransportType[i] = deliveryProvidersThatSupportAnyTypeOfTransportType[i].replace("]", "");
             deliveryProvidersThatSupportAnyTypeOfTransportType[i] = deliveryProvidersThatSupportAnyTypeOfTransportType[i].replace("\"", "");
         }
+        boolean isTransportTypeSupported = false;
+
         for (String deliveryProvider : deliveryProvidersThatSupportAnyTypeOfTransportType) {
             if (quoteRequest.deliveryProvider.get(0).equals(deliveryProvider)) {
                 supportAnyTransportType = true;
@@ -165,7 +168,23 @@ public class QuoteBookCancelStepDefs {
             assertEquals("any", quoteResponse.payload.quotes.get(0).transportTypes.get(0));
             assertEquals("quoted", quoteResponse.payload.quotes.get(0).quoteStatus);
         } else if (!supportAnyTransportType) {
-
+            String[] supportedTransportTypesForSpecificDeliveryProvider = UseParsers.extractAJsonArrayFromJsonFile("src/test/resources/misc/deliveryProviderProperties.json", quoteRequest.deliveryProvider.get(0) + ".availableTransportTypes").split(",", -1);
+            for (int i = 0; i < supportedTransportTypesForSpecificDeliveryProvider.length; i++) {
+                supportedTransportTypesForSpecificDeliveryProvider[i] = supportedTransportTypesForSpecificDeliveryProvider[i].replace("[", "");
+                supportedTransportTypesForSpecificDeliveryProvider[i] = supportedTransportTypesForSpecificDeliveryProvider[i].replace("]", "");
+                supportedTransportTypesForSpecificDeliveryProvider[i] = supportedTransportTypesForSpecificDeliveryProvider[i].replace("\"", "");
+            }
+            for (int t = 0; t < quoteRequest.transportType.size(); t++) {
+                for (String supportedTransportType : supportedTransportTypesForSpecificDeliveryProvider) {
+                    if (quoteRequest.transportType.get(t).equals(supportedTransportType)) {
+                        assertEquals("quoted", quoteResponse.payload.quotes.get(t).quoteStatus);
+                        supportedTransportTypeIdentifiedQuoteObjectNumber = t;
+                    }
+                }
+                while (t != supportedTransportTypeIdentifiedQuoteObjectNumber) {
+                    assertEquals("error", quoteResponse.payload.quotes.get(t).quoteStatus);
+                }
+            }
         }
 
 
@@ -455,6 +474,7 @@ public class QuoteBookCancelStepDefs {
 
         assertEquals(quoteRequest.tasks.size(), bookResponse.payload.tasks.size());
 
+        int supportedTransportTypeIdentifiedQuoteObjectNumber = 0;
         boolean supportAnyTransportType = false;
         String[] deliveryProvidersThatSupportAnyTypeOfTransportType = UseParsers.extractAJsonArrayFromJsonFile("src/test/resources/misc/deliveryProviderProperties.json", "DeliveryProvidersThatSupportAnyTypeOfTransportType").split(",", -1);
         for (int i = 0; i < deliveryProvidersThatSupportAnyTypeOfTransportType.length; i++) {
@@ -462,6 +482,8 @@ public class QuoteBookCancelStepDefs {
             deliveryProvidersThatSupportAnyTypeOfTransportType[i] = deliveryProvidersThatSupportAnyTypeOfTransportType[i].replace("]", "");
             deliveryProvidersThatSupportAnyTypeOfTransportType[i] = deliveryProvidersThatSupportAnyTypeOfTransportType[i].replace("\"", "");
         }
+        boolean isTransportTypeSupported = false;
+
         for (String deliveryProvider : deliveryProvidersThatSupportAnyTypeOfTransportType) {
             if (quoteRequest.deliveryProvider.get(0).equals(deliveryProvider)) {
                 supportAnyTransportType = true;
@@ -473,7 +495,23 @@ public class QuoteBookCancelStepDefs {
             assertEquals("any", bookResponse.payload.quotes.get(0).transportTypes.get(0));
             assertEquals("booked", bookResponse.payload.quotes.get(0).quoteStatus);
         } else if (!supportAnyTransportType) {
-
+            String[] supportedTransportTypesForSpecificDeliveryProvider = UseParsers.extractAJsonArrayFromJsonFile("src/test/resources/misc/deliveryProviderProperties.json", quoteRequest.deliveryProvider.get(0) + ".availableTransportTypes").split(",", -1);
+            for (int i = 0; i < supportedTransportTypesForSpecificDeliveryProvider.length; i++) {
+                supportedTransportTypesForSpecificDeliveryProvider[i] = supportedTransportTypesForSpecificDeliveryProvider[i].replace("[", "");
+                supportedTransportTypesForSpecificDeliveryProvider[i] = supportedTransportTypesForSpecificDeliveryProvider[i].replace("]", "");
+                supportedTransportTypesForSpecificDeliveryProvider[i] = supportedTransportTypesForSpecificDeliveryProvider[i].replace("\"", "");
+            }
+            for (int t = 0; t < quoteRequest.transportType.size(); t++) {
+                for (String supportedTransportType : supportedTransportTypesForSpecificDeliveryProvider) {
+                    if (quoteRequest.transportType.get(t).equals(supportedTransportType)) {
+                        assertEquals("booked", bookResponse.payload.quotes.get(t).quoteStatus);
+                        supportedTransportTypeIdentifiedQuoteObjectNumber = t;
+                    }
+                }
+                while (t != supportedTransportTypeIdentifiedQuoteObjectNumber) {
+                    assertEquals("error", bookResponse.payload.quotes.get(t).quoteStatus);
+                }
+            }
         }
 
 
