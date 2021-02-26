@@ -30,6 +30,11 @@ public class UseParsers {
         return useParsers.perform(Parsers.ExtractJsonObjectFromFile, filePathFromContentRoot, requestedJsonObject);
     }
 
+    public static String extractAJsonArrayFromJsonFile(String filePathFromContentRoot, String requestedJsonObject) throws IOException {
+        UseParsers useParsers = new UseParsers();
+        return useParsers.perform(Parsers.ExtractJsonArrayFromFile, filePathFromContentRoot, requestedJsonObject);
+    }
+
     public static String getAValueFromTxtPropertyFile(String fileName, String key) throws IOException {
         UseParsers useParsers = new UseParsers();
         return useParsers.perform(Parsers.GetAPropertyFromConfigTxtFile, fileName, key);

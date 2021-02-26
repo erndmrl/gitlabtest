@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.yaml.snakeyaml.Yaml;
 
@@ -208,6 +209,31 @@ enum Parsers {
             }
             if (jsonObject != null) {
                 return jsonObject.toString();
+            } else return null;
+        }
+
+        @Override
+        LinkedHashMap<String, String> execute(String propertyFilePath) throws IOException {
+            return null;
+        }
+    },
+
+    ExtractJsonArrayFromFile {
+
+        JSONObject orgJsonObject;
+
+        @Override
+        String execute(String filePathFromContentRoot, String requestedJsonArray) throws IOException {
+            File jsonFile = new File(filePathFromContentRoot);
+            JSONArray jsonArray = null;
+            if (jsonFile.exists()) {
+                InputStream is = new FileInputStream(filePathFromContentRoot);
+                String jsonTxt = IOUtils.toString(is, StandardCharsets.UTF_8);
+                orgJsonObject = new JSONObject(jsonTxt);
+                jsonArray = orgJsonObject.getJSONArray(requestedJsonArray);
+            }
+            if (jsonArray != null) {
+                return jsonArray.toString();
             } else return null;
         }
 

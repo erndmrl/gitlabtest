@@ -1,0 +1,22 @@
+{
+  "DeliveryProvidersThatSupportAnyTypeOfTransportType": [
+    "onfleet",
+    "greenway_couriers"
+  ],
+  "DoorDash": {
+    "AVAILABLE_TRANSPORT_TYPES": [
+      "bike",
+      "car",
+      "walker"
+    ]
+  },
+  "AddisonLee": {
+    "AVAILABLE_TRANSPORT_TYPES": [
+      "bike",
+      "motorbike",
+      "car",
+      "minivan",
+      "van"
+    ]
+  }
+}

@@ -105,14 +105,8 @@ public class QuoteRequest {
         public List<String> transportType;
         @JsonProperty("Tags")
         public List<String> tags;
-
-        public List<String> getTransportType() {
-            if (transportType == null)
-            return new ArrayList<String>();
-            else
-            return transportType;
-        }
-
+        @JsonProperty("DeliveryProvider")
+        public List<String> deliveryProvider;
         @JsonProperty("Flags")
         public List<String> flags;
         @JsonProperty("Notes")

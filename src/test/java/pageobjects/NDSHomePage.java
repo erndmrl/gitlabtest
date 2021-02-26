@@ -147,10 +147,14 @@ public class NDSHomePage extends Driver {
         } else throw new ElementClickInterceptedException("Failed to click next page button");
     }
 
-    public void refreshTableData() {
+    public void refreshTableData() throws InterruptedException {
         DriverUtils.waitUntil(ExpectedConditions.elementToBeClickable(refreshContentButton), 10, driver);
         DriverUtils.getActions(driver).moveToElement(refreshContentButton).click().build().perform();
-        DriverUtils.waitUntil(ExpectedConditions.visibilityOf(refreshContentButtonAnimated), 10, driver);
+        try {
+            DriverUtils.waitUntil(ExpectedConditions.visibilityOf(refreshContentButtonAnimated), 10, driver);
+        } catch (StaleElementReferenceException se){
+            Thread.sleep(1000);
+        }
     }
 
     public void goToDateWhereJobSupposedToBeIn(Date jobDate) throws Exception {

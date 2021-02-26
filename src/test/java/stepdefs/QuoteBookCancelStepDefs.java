@@ -22,6 +22,7 @@ import pageobjects.NDSHomePage;
 import testprojectcore.core.DriverManager;
 import testprojectcore.dataprovider.EnvironmentDataProvider;
 import testprojectcore.dataprovider.JacksonObjectMapper;
+import testprojectcore.dataprovider.UseParsers;
 import testprojectcore.driverutil.PageObjectFactory;
 import testprojectcore.http.apachehttpclient.ApacheHttpClient;
 import testprojectcore.http.apachehttpclient.HttpCallBuilder;
@@ -31,12 +32,10 @@ import testprojectcore.util.Helper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class QuoteBookCancelStepDefs {
 
@@ -143,12 +142,32 @@ public class QuoteBookCancelStepDefs {
     }
 
     @And("Quote Response: Check response parameters")
-    public void quoteParameterInsideBodyAndParameterInsideBodyShouldBe() {
+    public void quoteParameterInsideBodyAndParameterInsideBodyShouldBe() throws Exception {
 
 
-        assertAll("Size comparison of Tasks json array",
-                () -> assertEquals(quoteRequest.tasks.size(), quoteResponse.payload.tasks.size())
-        );
+        assertEquals(quoteRequest.tasks.size(), quoteResponse.payload.tasks.size());
+
+        boolean supportAnyTransportType = false;
+        String[] deliveryProvidersThatSupportAnyTypeOfTransportType = UseParsers.extractAJsonArrayFromJsonFile("src/test/resources/misc/deliveryProviderProperties.json", "DeliveryProvidersThatSupportAnyTypeOfTransportType").split(",", -1);
+        for (int i = 0; i < deliveryProvidersThatSupportAnyTypeOfTransportType.length; i++) {
+            deliveryProvidersThatSupportAnyTypeOfTransportType[i] = deliveryProvidersThatSupportAnyTypeOfTransportType[i].replace("[", "");
+            deliveryProvidersThatSupportAnyTypeOfTransportType[i] = deliveryProvidersThatSupportAnyTypeOfTransportType[i].replace("]", "");
+            deliveryProvidersThatSupportAnyTypeOfTransportType[i] = deliveryProvidersThatSupportAnyTypeOfTransportType[i].replace("\"", "");
+        }
+        for (String deliveryProvider : deliveryProvidersThatSupportAnyTypeOfTransportType) {
+            if (quoteRequest.deliveryProvider.get(0).equals(deliveryProvider)) {
+                supportAnyTransportType = true;
+            }
+        }
+
+        if (supportAnyTransportType) {
+            assertEquals(1, quoteResponse.payload.quotes.size());
+            assertEquals("any", quoteResponse.payload.quotes.get(0).transportTypes.get(0));
+            assertEquals("quoted", quoteResponse.payload.quotes.get(0).quoteStatus);
+        } else if (!supportAnyTransportType) {
+
+        }
+
 
         for (int i = 0; i < quoteRequest.tasks.size(); i++) {
             int finalI = i;
@@ -434,9 +453,29 @@ public class QuoteBookCancelStepDefs {
         assert bookResponse != null;
 
 
-        assertAll("Size comparison of Tasks json array",
-                () -> assertEquals(quoteRequest.tasks.size(), bookResponse.payload.tasks.size())
-        );
+        assertEquals(quoteRequest.tasks.size(), bookResponse.payload.tasks.size());
+
+        boolean supportAnyTransportType = false;
+        String[] deliveryProvidersThatSupportAnyTypeOfTransportType = UseParsers.extractAJsonArrayFromJsonFile("src/test/resources/misc/deliveryProviderProperties.json", "DeliveryProvidersThatSupportAnyTypeOfTransportType").split(",", -1);
+        for (int i = 0; i < deliveryProvidersThatSupportAnyTypeOfTransportType.length; i++) {
+            deliveryProvidersThatSupportAnyTypeOfTransportType[i] = deliveryProvidersThatSupportAnyTypeOfTransportType[i].replace("[", "");
+            deliveryProvidersThatSupportAnyTypeOfTransportType[i] = deliveryProvidersThatSupportAnyTypeOfTransportType[i].replace("]", "");
+            deliveryProvidersThatSupportAnyTypeOfTransportType[i] = deliveryProvidersThatSupportAnyTypeOfTransportType[i].replace("\"", "");
+        }
+        for (String deliveryProvider : deliveryProvidersThatSupportAnyTypeOfTransportType) {
+            if (quoteRequest.deliveryProvider.get(0).equals(deliveryProvider)) {
+                supportAnyTransportType = true;
+            }
+        }
+
+        if (supportAnyTransportType) {
+            assertEquals(1, bookResponse.payload.quotes.size());
+            assertEquals("any", bookResponse.payload.quotes.get(0).transportTypes.get(0));
+            assertEquals("booked", bookResponse.payload.quotes.get(0).quoteStatus);
+        } else if (!supportAnyTransportType) {
+
+        }
+
 
         for (int i = 0; i < quoteRequest.tasks.size(); i++) {
             int finalI = i;
@@ -780,6 +819,12 @@ public class QuoteBookCancelStepDefs {
         List<NameValuePair> headers = new ArrayList<>();
         headers.add(new BasicNameValuePair("Authorization", UseBearerToken.INSTANCE.getBearerToken()));
         quoteRequest = JacksonObjectMapper.mapJsonFileToObject(QuoteRequest.class, "src/test/java/apicalls/payloads/quote/SingleScheduledDeliveryWindowsAnyOtherDay.json");
+        for (int i = 0; i < quoteRequest.tasks.size(); i++) {
+            if (quoteRequest.tasks.get(i).requestedWindow != null) {
+                quoteRequest.tasks.get(i).requestedWindow.from = DateTimeUtil.addDaysToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 1);
+                quoteRequest.tasks.get(i).requestedWindow.to = DateTimeUtil.addDaysToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 2);
+            }
+        }
         String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(quoteRequest)));
         HttpResponse response =
                 ApacheHttpClient.sendRequest(
@@ -839,6 +884,12 @@ public class QuoteBookCancelStepDefs {
     @And("Take an authorization token and request to Book for Single Drop - Immediate Booking, Quote & Book - Scheduled Any Other Day")
     public void takeAnAuthorizationTokenAndRequestToBookForSingleDropImmediateBookingQuoteBookScheduledAnyOtherDay() throws Exception {
         quoteRequest = JacksonObjectMapper.mapJsonFileToObject(QuoteRequest.class, "src/test/java/apicalls/payloads/book/ImmediateBookingQuoteBookScheduledAnyOtherDay.json");
+        for (int i = 0; i < quoteRequest.tasks.size(); i++) {
+            if (quoteRequest.tasks.get(i).requestedWindow != null) {
+                quoteRequest.tasks.get(i).requestedWindow.from = DateTimeUtil.addDaysToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 1);
+                quoteRequest.tasks.get(i).requestedWindow.to = DateTimeUtil.addDaysToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 2);
+            }
+        }
         RestAssured.baseURI = "https://api2-test.noqu.delivery";
         RestAssured.basePath = "/v2";
 
