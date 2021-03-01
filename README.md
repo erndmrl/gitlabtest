@@ -10,11 +10,11 @@ For now only used for Delivery provider Integrations(DPI)
 
 It is ready to use once pulled. The suggested IDE is IntelliJ Idea. Before pulling the project make sure you have:
 
-- OpenJDK 15 installed,
-- Maven installed, 
-- Annotation processors enabled since project uses Lombok,
+- [OpenJDK 15](https://jdk.java.net/15/) installed,
+- [Maven](https://maven.apache.org/download.cgi) installed, 
+- Annotation processors enabled since project uses [Lombok](https://mvnrepository.com/artifact/org.projectlombok/lombok),
 - Browsers matching with the Selenium drivers inside the project source installed(_you may want to contact QA team for browser version info_), 
-- Appium server installed **only if** you are going to run mobile tests.
+- [Appium server](https://github.com/appium/appium-desktop/releases) installed **only if** you are going to run mobile tests.
 
 Selenium drivers are [inside the project source](https://github.com/lineten/nova-cucumber-dpi-tests/tree/master/src/test/resources/webdriver) so no need to do anything about it
 
