@@ -26,7 +26,7 @@ public class EnvironmentDataProvider {
     }
 
     public static class TESTDATA {
-        public static String getData(String key) throws Exception {
+        public static String getData(String key) throws IOException {
             return UseParsers.extractAValueFromJsonFile("src/test/resources/testdata/testdata.json", key);
         }
     }

@@ -27,12 +27,38 @@ import java.util.Map;
  */
 public class HttpCallBuilder {
 
+    public static class GET {
+
+        public static HttpUriRequest getWithOrWithoutQueryParameters(String uri, @Nullable List<NameValuePair> queryParameters, @Nullable List<NameValuePair> headers, int socketTimeoutMs) throws URISyntaxException {
+
+            URIBuilder uriWithQueryParams = new URIBuilder(uri);
+            uriWithQueryParams.setParameters(queryParameters);
+
+            System.out.println("[Thread id: " + Thread.currentThread().getId() + "] " + "URL with query parameters: " + uriWithQueryParams.toString());
+
+
+            RequestBuilder requestBuilder =
+                    RequestBuilder.create("GET").setUri(new URI(uri));
+
+            if (headers != null) {
+                addHeaders(requestBuilder, headers);
+            }
+            setTimeout(requestBuilder, socketTimeoutMs);
+            System.out.println("[Thread id: " + Thread.currentThread().getId() + "] " + "Headers: " + Arrays.toString(requestBuilder.build().getAllHeaders()));
+            return requestBuilder.build();
+        }
+    }
+
     public static class PUT {
 
         public static HttpUriRequest putUsingJsonAsStringOrEmptyBody(String uri, String pathParam, @Nullable String jsonAsString, @Nullable List<NameValuePair> headers, int socketTimeoutMs) throws IOException, URISyntaxException {
 
+            uri = uri.trim();
+            if (uri.endsWith("/")) {
+                uri = uri.substring(0, uri.length() - 1);
+            }
+            uri = uri + "/" + pathParam;
             URIBuilder uriWithPathParam = new URIBuilder(uri);
-            uriWithPathParam.setPath("/" + pathParam);
 
             System.out.println("[Thread id: " + Thread.currentThread().getId() + "] " + "URL with pathparam: " + uriWithPathParam.toString());
 
@@ -44,7 +70,9 @@ public class HttpCallBuilder {
                 String requestBody = EntityUtils.toString(requestBuilder.getEntity(), StandardCharsets.UTF_8);
                 System.out.println("[Thread id: " + Thread.currentThread().getId() + "] " + "Request body: " + requestBody);
             }
-            addHeaders(requestBuilder, headers);
+            if (headers != null) {
+                addHeaders(requestBuilder, headers);
+            }
             setTimeout(requestBuilder, socketTimeoutMs);
             return requestBuilder.build();
         }
@@ -62,7 +90,7 @@ public class HttpCallBuilder {
             addHeaders(requestBuilder, headers);
             setTimeout(requestBuilder, socketTimeoutMs);
             String requestBody = EntityUtils.toString(requestBuilder.getEntity(), StandardCharsets.UTF_8);
-            System.out.println("[Thread id: " + Thread.currentThread().getId() + "] " + "Headers: "+ Arrays.toString(requestBuilder.build().getAllHeaders()));
+            System.out.println("[Thread id: " + Thread.currentThread().getId() + "] " + "Headers: " + Arrays.toString(requestBuilder.build().getAllHeaders()));
             System.out.println("[Thread id: " + Thread.currentThread().getId() + "] " + "Request body: " + requestBody);
             return requestBuilder.build();
         }

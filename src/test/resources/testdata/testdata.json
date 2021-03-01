@@ -1,8 +1,8 @@
 {
-  "env1": {
-    "": "",
-    "": "",
-    "": "",
+  "test": {
+    "HereLocationAPI_GeoCodingAPIURL": "https://geocode.search.hereapi.com/v1/geocode",
+    "HereLocationAPI_apiKey": "IlIcW3upiv0oBl5bjqajb_lZIYg6L4wbZIStc1g5TgI",
+    "BigDataCloudGeocodingAPI_ReverseGeocodingURL": "https://api.bigdatacloud.net/data/reverse-geocode-client",
     "": ""
   },
   "env2": {

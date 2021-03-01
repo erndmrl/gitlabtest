@@ -5,12 +5,16 @@ import apicalls.requests.quote.QuoteRequest;
 import apicalls.responses.book.BookResponse;
 import apicalls.responses.quote.QuoteResponse;
 import apicalls.restassured.tests.authentication.UseBearerToken;
+import apicalls.restassured.tests.geocoding.Geocode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import io.restassured.response.ResponseBody;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -31,8 +35,10 @@ import testprojectcore.util.DateTimeUtil;
 import testprojectcore.util.Helper;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
@@ -56,6 +62,8 @@ public class QuoteBookCancelStepDefs {
     private List<Integer> quoteIds = new ArrayList<>();
     private int jobId;
     private Date uiDate;
+    private List<String> latLong = new ArrayList<>();
+    private List<String> plusCodes = new ArrayList<>();
 
 
     public QuoteBookCancelStepDefs(TestContext testContext) {
@@ -76,10 +84,87 @@ public class QuoteBookCancelStepDefs {
             }
         }
         String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(quoteRequest)));
-        HttpResponse response =
-                ApacheHttpClient.sendRequest(
+
+
+        CompletableFuture<List<String>> asyncGetLatLong = CompletableFuture.supplyAsync(() -> {
+
+            ResponseBody responseBody = null;
+            JsonNode responseJsonNode = null;
+            String latitude = null;
+            String longitude = null;
+            List<String> restAssuredLatLong = new ArrayList<>();
+            Geocode geocode = new Geocode();
+            for (int g = 0; g < quoteRequest.tasks.size(); g++) {
+                try {
+                    responseBody = geocode.getLatLong(quoteRequest.tasks.get(g).location.address.address1, quoteRequest.tasks.get(g).location.address.address2, quoteRequest.tasks.get(g).location.address.postcode, quoteRequest.tasks.get(g).location.address.city, quoteRequest.tasks.get(g).location.address.country);
+                } catch (IOException | InterruptedException | URISyntaxException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    assert responseBody != null;
+                    responseJsonNode = JacksonObjectMapper.convertStringToJsonNode(responseBody.asString());
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while converting geocoding api response");
+                }
+                JsonNode items = responseJsonNode.get("items");
+
+                for (JsonNode item : items) {
+                    JsonNode address = item.get("address");
+                    String label = address.get("label").asText();
+                    JsonNode position = item.get("position");
+                    latitude = position.get("lat").asText();
+                    longitude = position.get("lng").asText();
+                }
+                restAssuredLatLong.add(g, latitude + ";" + longitude);
+            }
+
+            return restAssuredLatLong;
+        });
+
+        latLong = asyncGetLatLong.get();
+
+        CompletableFuture<List<String>> asyncGetPlusCode = CompletableFuture.supplyAsync(() -> {
+
+            Geocode geocode = new Geocode();
+            ResponseBody responseBody = null;
+            List<String> restAssuredPlusCodes = new ArrayList<>();
+
+
+            while (!asyncGetLatLong.isDone()) {
+                //do nothing
+            }
+
+            for (int h = 0; h < quoteRequest.tasks.size(); h++) {
+                try {
+                    responseBody = geocode.getPlusCode(latLong.get(h).split(";", -1)[0], latLong.get(h).split(";", -1)[1]);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while reverse geocoding");
+                }
+                assert responseBody != null;
+                restAssuredPlusCodes.add(h, responseBody.jsonPath().getString("plusCode"));
+            }
+            return restAssuredPlusCodes;
+        });
+
+
+        CompletableFuture<HttpResponse> asyncQuoteRequest = CompletableFuture.supplyAsync(() -> {
+
+            HttpResponse response = null;
+            try {
+                response = ApacheHttpClient.sendRequest(
                         HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 35000));
-        clientResponse = response;
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Something went wrong while sending the quote request");
+            }
+            return response;
+        });
+
+        clientResponse = asyncQuoteRequest.get();
+        plusCodes = asyncGetPlusCode.get();
+
     }
 
 
@@ -787,7 +872,7 @@ public class QuoteBookCancelStepDefs {
         headers.add(new BasicNameValuePair("Authorization", UseBearerToken.INSTANCE.getBearerToken()));
         HttpResponse response =
                 ApacheHttpClient.sendRequest(
-                        HttpCallBuilder.PUT.putUsingJsonAsStringOrEmptyBody(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_CancelBookingBaseURL"), "/v2/job/cancel/" + jobId, null, headers, 10000));
+                        HttpCallBuilder.PUT.putUsingJsonAsStringOrEmptyBody(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_CancelBookingURL"), String.valueOf(jobId), null, headers, 10000));
         clientResponse = response;
     }
 
@@ -810,17 +895,6 @@ public class QuoteBookCancelStepDefs {
         }
     }
 
-    @And("Take an authorization token and request to Quote for Single ASAP Pickup")
-    public void takeAnAuthorizationTokenAndRequestToQuoteForSingleASAPPickup() throws Exception {
-        List<NameValuePair> headers = new ArrayList<>();
-        headers.add(new BasicNameValuePair("Authorization", UseBearerToken.INSTANCE.getBearerToken()));
-        quoteRequest = JacksonObjectMapper.mapJsonFileToObject(QuoteRequest.class, "src/test/java/apicalls/payloads/quote/SingleASAPPickup.json");
-        String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(quoteRequest)));
-        HttpResponse response =
-                ApacheHttpClient.sendRequest(
-                        HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 10000));
-        clientResponse = response;
-    }
 
     @And("Take an authorization token and request to Quote for Single Scheduled Same Day Delivery")
     public void takeAnAuthorizationTokenAndRequestToQuoteForSingleScheduledSameDayDelivery() throws Exception {
@@ -834,10 +908,88 @@ public class QuoteBookCancelStepDefs {
             }
         }
         String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(quoteRequest)));
-        HttpResponse response =
-                ApacheHttpClient.sendRequest(
-                        HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 10000));
-        clientResponse = response;
+
+
+        CompletableFuture<List<String>> asyncGetLatLong = CompletableFuture.supplyAsync(() -> {
+
+            ResponseBody responseBody = null;
+            JsonNode responseJsonNode = null;
+            String latitude = null;
+            String longitude = null;
+            List<String> restAssuredLatLong = new ArrayList<>();
+            Geocode geocode = new Geocode();
+            for (int g = 0; g < quoteRequest.tasks.size(); g++) {
+                try {
+                    responseBody = geocode.getLatLong(quoteRequest.tasks.get(g).location.address.address1, quoteRequest.tasks.get(g).location.address.address2, quoteRequest.tasks.get(g).location.address.postcode, quoteRequest.tasks.get(g).location.address.city, quoteRequest.tasks.get(g).location.address.country);
+                } catch (IOException | InterruptedException | URISyntaxException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    assert responseBody != null;
+                    responseJsonNode = JacksonObjectMapper.convertStringToJsonNode(responseBody.asString());
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while converting geocoding api response");
+                }
+                JsonNode items = responseJsonNode.get("items");
+
+                for (JsonNode item : items) {
+                    JsonNode address = item.get("address");
+                    String label = address.get("label").asText();
+                    JsonNode position = item.get("position");
+                    latitude = position.get("lat").asText();
+                    longitude = position.get("lng").asText();
+                }
+                restAssuredLatLong.add(g, latitude + ";" + longitude);
+            }
+
+            return restAssuredLatLong;
+        });
+
+        latLong = asyncGetLatLong.get();
+
+        CompletableFuture<List<String>> asyncGetPlusCode = CompletableFuture.supplyAsync(() -> {
+
+            Geocode geocode = new Geocode();
+            ResponseBody responseBody = null;
+            List<String> restAssuredPlusCodes = new ArrayList<>();
+
+
+            while (!asyncGetLatLong.isDone()) {
+                //do nothing
+            }
+
+            for (int h = 0; h < quoteRequest.tasks.size(); h++) {
+                try {
+                    responseBody = geocode.getPlusCode(latLong.get(h).split(";", -1)[0], latLong.get(h).split(";", -1)[1]);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while reverse geocoding");
+                }
+                assert responseBody != null;
+                restAssuredPlusCodes.add(h, responseBody.jsonPath().getString("plusCode"));
+            }
+            return restAssuredPlusCodes;
+        });
+
+
+        CompletableFuture<HttpResponse> asyncQuoteRequest = CompletableFuture.supplyAsync(() -> {
+
+            HttpResponse response = null;
+            try {
+                response =
+                        ApacheHttpClient.sendRequest(
+                                HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 10000));
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Something went wrong while sending the quote request");
+            }
+            return response;
+        });
+
+        clientResponse = asyncQuoteRequest.get();
+        plusCodes = asyncGetPlusCode.get();
+
     }
 
     @And("Take an authorization token and request to Quote for Single Scheduled Delivery Windows - Same Day")
@@ -852,10 +1004,88 @@ public class QuoteBookCancelStepDefs {
             }
         }
         String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(quoteRequest)));
-        HttpResponse response =
-                ApacheHttpClient.sendRequest(
-                        HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 10000));
-        clientResponse = response;
+
+
+        CompletableFuture<List<String>> asyncGetLatLong = CompletableFuture.supplyAsync(() -> {
+
+            ResponseBody responseBody = null;
+            JsonNode responseJsonNode = null;
+            String latitude = null;
+            String longitude = null;
+            List<String> restAssuredLatLong = new ArrayList<>();
+            Geocode geocode = new Geocode();
+            for (int g = 0; g < quoteRequest.tasks.size(); g++) {
+                try {
+                    responseBody = geocode.getLatLong(quoteRequest.tasks.get(g).location.address.address1, quoteRequest.tasks.get(g).location.address.address2, quoteRequest.tasks.get(g).location.address.postcode, quoteRequest.tasks.get(g).location.address.city, quoteRequest.tasks.get(g).location.address.country);
+                } catch (IOException | InterruptedException | URISyntaxException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    assert responseBody != null;
+                    responseJsonNode = JacksonObjectMapper.convertStringToJsonNode(responseBody.asString());
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while converting geocoding api response");
+                }
+                JsonNode items = responseJsonNode.get("items");
+
+                for (JsonNode item : items) {
+                    JsonNode address = item.get("address");
+                    String label = address.get("label").asText();
+                    JsonNode position = item.get("position");
+                    latitude = position.get("lat").asText();
+                    longitude = position.get("lng").asText();
+                }
+                restAssuredLatLong.add(g, latitude + ";" + longitude);
+            }
+
+            return restAssuredLatLong;
+        });
+
+        latLong = asyncGetLatLong.get();
+
+        CompletableFuture<List<String>> asyncGetPlusCode = CompletableFuture.supplyAsync(() -> {
+
+            Geocode geocode = new Geocode();
+            ResponseBody responseBody = null;
+            List<String> restAssuredPlusCodes = new ArrayList<>();
+
+
+            while (!asyncGetLatLong.isDone()) {
+                //do nothing
+            }
+
+            for (int h = 0; h < quoteRequest.tasks.size(); h++) {
+                try {
+                    responseBody = geocode.getPlusCode(latLong.get(h).split(";", -1)[0], latLong.get(h).split(";", -1)[1]);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while reverse geocoding");
+                }
+                assert responseBody != null;
+                restAssuredPlusCodes.add(h, responseBody.jsonPath().getString("plusCode"));
+            }
+            return restAssuredPlusCodes;
+        });
+
+
+        CompletableFuture<HttpResponse> asyncQuoteRequest = CompletableFuture.supplyAsync(() -> {
+
+            HttpResponse response = null;
+            try {
+                response =
+                        ApacheHttpClient.sendRequest(
+                                HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 10000));
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Something went wrong while sending the quote request");
+            }
+            return response;
+        });
+
+        clientResponse = asyncQuoteRequest.get();
+        plusCodes = asyncGetPlusCode.get();
+
     }
 
     @And("Take an authorization token and request to Quote for Single Scheduled Delivery Windows - Any Other Day")
@@ -870,32 +1100,188 @@ public class QuoteBookCancelStepDefs {
             }
         }
         String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(quoteRequest)));
-        HttpResponse response =
-                ApacheHttpClient.sendRequest(
-                        HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 20000));
-        clientResponse = response;
+
+        CompletableFuture<List<String>> asyncGetLatLong = CompletableFuture.supplyAsync(() -> {
+
+            ResponseBody responseBody = null;
+            JsonNode responseJsonNode = null;
+            String latitude = null;
+            String longitude = null;
+            List<String> restAssuredLatLong = new ArrayList<>();
+            Geocode geocode = new Geocode();
+            for (int g = 0; g < quoteRequest.tasks.size(); g++) {
+                try {
+                    responseBody = geocode.getLatLong(quoteRequest.tasks.get(g).location.address.address1, quoteRequest.tasks.get(g).location.address.address2, quoteRequest.tasks.get(g).location.address.postcode, quoteRequest.tasks.get(g).location.address.city, quoteRequest.tasks.get(g).location.address.country);
+                } catch (IOException | InterruptedException | URISyntaxException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    assert responseBody != null;
+                    responseJsonNode = JacksonObjectMapper.convertStringToJsonNode(responseBody.asString());
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while converting geocoding api response");
+                }
+                JsonNode items = responseJsonNode.get("items");
+
+                for (JsonNode item : items) {
+                    JsonNode address = item.get("address");
+                    String label = address.get("label").asText();
+                    JsonNode position = item.get("position");
+                    latitude = position.get("lat").asText();
+                    longitude = position.get("lng").asText();
+                }
+                restAssuredLatLong.add(g, latitude + ";" + longitude);
+            }
+
+            return restAssuredLatLong;
+        });
+
+        latLong = asyncGetLatLong.get();
+
+        CompletableFuture<List<String>> asyncGetPlusCode = CompletableFuture.supplyAsync(() -> {
+
+            Geocode geocode = new Geocode();
+            ResponseBody responseBody = null;
+            List<String> restAssuredPlusCodes = new ArrayList<>();
+
+
+            while (!asyncGetLatLong.isDone()) {
+                //do nothing
+            }
+
+            for (int h = 0; h < quoteRequest.tasks.size(); h++) {
+                try {
+                    responseBody = geocode.getPlusCode(latLong.get(h).split(";", -1)[0], latLong.get(h).split(";", -1)[1]);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while reverse geocoding");
+                }
+                assert responseBody != null;
+                restAssuredPlusCodes.add(h, responseBody.jsonPath().getString("plusCode"));
+            }
+            return restAssuredPlusCodes;
+        });
+
+
+        CompletableFuture<HttpResponse> asyncQuoteRequest = CompletableFuture.supplyAsync(() -> {
+
+            HttpResponse response = null;
+            try {
+                response =
+                        ApacheHttpClient.sendRequest(
+                                HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 20000));
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Something went wrong while sending the quote request");
+            }
+            return response;
+        });
+
+        clientResponse = asyncQuoteRequest.get();
+        plusCodes = asyncGetPlusCode.get();
+
     }
 
 
     @And("Take an authorization token and request to Book for Single Drop - Immediate Booking, Quote & Book - ASAP")
     public void takeAnAuthorizationTokenAndRequestToBookForSingleDropImmediateBookingQuoteBookASAP() throws Exception {
         quoteRequest = JacksonObjectMapper.mapJsonFileToObject(QuoteRequest.class, "src/test/java/apicalls/payloads/book/ImmediateBookingQuoteBookAsap.json");
-        RestAssured.baseURI = "https://api2-test.noqu.delivery";
-        RestAssured.basePath = "/v2";
 
-        Response response =
-                given().
-                        contentType(ContentType.JSON).
-                        header("Authorization", UseBearerToken.INSTANCE.getBearerToken()).
-                        body(quoteRequest).
-                        when().
-                        log().body().
-                        post("/nds/immediateBooking").
-                        then().
-                        log().body().
-                        extract().response();
 
-        clientResponse = response;
+        CompletableFuture<List<String>> asyncGetLatLong = CompletableFuture.supplyAsync(() -> {
+
+            ResponseBody responseBody = null;
+            JsonNode responseJsonNode = null;
+            String latitude = null;
+            String longitude = null;
+            List<String> restAssuredLatLong = new ArrayList<>();
+            Geocode geocode = new Geocode();
+            for (int g = 0; g < quoteRequest.tasks.size(); g++) {
+                try {
+                    responseBody = geocode.getLatLong(quoteRequest.tasks.get(g).location.address.address1, quoteRequest.tasks.get(g).location.address.address2, quoteRequest.tasks.get(g).location.address.postcode, quoteRequest.tasks.get(g).location.address.city, quoteRequest.tasks.get(g).location.address.country);
+                } catch (IOException | InterruptedException | URISyntaxException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    assert responseBody != null;
+                    responseJsonNode = JacksonObjectMapper.convertStringToJsonNode(responseBody.asString());
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while converting geocoding api response");
+                }
+                JsonNode items = responseJsonNode.get("items");
+
+                for (JsonNode item : items) {
+                    JsonNode address = item.get("address");
+                    String label = address.get("label").asText();
+                    JsonNode position = item.get("position");
+                    latitude = position.get("lat").asText();
+                    longitude = position.get("lng").asText();
+                }
+                restAssuredLatLong.add(g, latitude + ";" + longitude);
+            }
+
+            return restAssuredLatLong;
+        });
+
+        latLong = asyncGetLatLong.get();
+
+        CompletableFuture<List<String>> asyncGetPlusCode = CompletableFuture.supplyAsync(() -> {
+
+            Geocode geocode = new Geocode();
+            ResponseBody responseBody = null;
+            List<String> restAssuredPlusCodes = new ArrayList<>();
+
+
+            while (!asyncGetLatLong.isDone()) {
+                //do nothing
+            }
+
+            for (int h = 0; h < quoteRequest.tasks.size(); h++) {
+                try {
+                    responseBody = geocode.getPlusCode(latLong.get(h).split(";", -1)[0], latLong.get(h).split(";", -1)[1]);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while reverse geocoding");
+                }
+                assert responseBody != null;
+                restAssuredPlusCodes.add(h, responseBody.jsonPath().getString("plusCode"));
+            }
+            return restAssuredPlusCodes;
+        });
+
+
+        CompletableFuture<Response> asyncQuoteRequest = CompletableFuture.supplyAsync(() -> {
+
+            Response response = null;
+            try {
+
+                RestAssured.baseURI = "https://api2-test.noqu.delivery";
+                RestAssured.basePath = "/v2";
+
+                response =
+                        given().
+                                contentType(ContentType.JSON).
+                                header("Authorization", UseBearerToken.INSTANCE.getBearerToken()).
+                                body(quoteRequest).
+                                when().
+                                log().body().
+                                post("/nds/immediateBooking").
+                                then().
+                                log().body().
+                                extract().response();
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Something went wrong while sending the quote request");
+            }
+            assert response != null;
+            return response;
+        });
+
+        clientResponse = asyncQuoteRequest.get();
+        plusCodes = asyncGetPlusCode.get();
+
     }
 
     @And("Take an authorization token and request to Book for Single Drop - Immediate Booking, Quote & Book - Scheduled today")
@@ -907,22 +1293,99 @@ public class QuoteBookCancelStepDefs {
                 quoteRequest.tasks.get(i).requestedWindow.from = DateTimeUtil.addHoursToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 4);
             }
         }
-        RestAssured.baseURI = "https://api2-test.noqu.delivery";
-        RestAssured.basePath = "/v2";
+        CompletableFuture<List<String>> asyncGetLatLong = CompletableFuture.supplyAsync(() -> {
 
-        Response response =
-                given().
-                        contentType(ContentType.JSON).
-                        header("Authorization", UseBearerToken.INSTANCE.getBearerToken()).
-                        body(quoteRequest).
-                        when().
-                        log().body().
-                        post("/nds/immediateBooking").
-                        then().
-                        log().body().
-                        extract().response();
+            ResponseBody responseBody = null;
+            JsonNode responseJsonNode = null;
+            String latitude = null;
+            String longitude = null;
+            List<String> restAssuredLatLong = new ArrayList<>();
+            Geocode geocode = new Geocode();
+            for (int g = 0; g < quoteRequest.tasks.size(); g++) {
+                try {
+                    responseBody = geocode.getLatLong(quoteRequest.tasks.get(g).location.address.address1, quoteRequest.tasks.get(g).location.address.address2, quoteRequest.tasks.get(g).location.address.postcode, quoteRequest.tasks.get(g).location.address.city, quoteRequest.tasks.get(g).location.address.country);
+                } catch (IOException | InterruptedException | URISyntaxException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    assert responseBody != null;
+                    responseJsonNode = JacksonObjectMapper.convertStringToJsonNode(responseBody.asString());
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while converting geocoding api response");
+                }
+                JsonNode items = responseJsonNode.get("items");
 
-        clientResponse = response;
+                for (JsonNode item : items) {
+                    JsonNode address = item.get("address");
+                    String label = address.get("label").asText();
+                    JsonNode position = item.get("position");
+                    latitude = position.get("lat").asText();
+                    longitude = position.get("lng").asText();
+                }
+                restAssuredLatLong.add(g, latitude + ";" + longitude);
+            }
+
+            return restAssuredLatLong;
+        });
+
+        latLong = asyncGetLatLong.get();
+
+        CompletableFuture<List<String>> asyncGetPlusCode = CompletableFuture.supplyAsync(() -> {
+
+            Geocode geocode = new Geocode();
+            ResponseBody responseBody = null;
+            List<String> restAssuredPlusCodes = new ArrayList<>();
+
+
+            while (!asyncGetLatLong.isDone()) {
+                //do nothing
+            }
+
+            for (int h = 0; h < quoteRequest.tasks.size(); h++) {
+                try {
+                    responseBody = geocode.getPlusCode(latLong.get(h).split(";", -1)[0], latLong.get(h).split(";", -1)[1]);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while reverse geocoding");
+                }
+                assert responseBody != null;
+                restAssuredPlusCodes.add(h, responseBody.jsonPath().getString("plusCode"));
+            }
+            return restAssuredPlusCodes;
+        });
+
+
+        CompletableFuture<Response> asyncQuoteRequest = CompletableFuture.supplyAsync(() -> {
+
+            Response response = null;
+            try {
+
+                RestAssured.baseURI = "https://api2-test.noqu.delivery";
+                RestAssured.basePath = "/v2";
+
+                response =
+                        given().
+                                contentType(ContentType.JSON).
+                                header("Authorization", UseBearerToken.INSTANCE.getBearerToken()).
+                                body(quoteRequest).
+                                when().
+                                log().body().
+                                post("/nds/immediateBooking").
+                                then().
+                                log().body().
+                                extract().response();
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Something went wrong while sending the quote request");
+            }
+            assert response != null;
+            return response;
+        });
+
+        clientResponse = asyncQuoteRequest.get();
+        plusCodes = asyncGetPlusCode.get();
+
     }
 
     @And("Take an authorization token and request to Book for Single Drop - Immediate Booking, Quote & Book - Scheduled Any Other Day")
@@ -934,45 +1397,98 @@ public class QuoteBookCancelStepDefs {
                 quoteRequest.tasks.get(i).requestedWindow.to = DateTimeUtil.addDaysToDate(DateTimeUtil.getCurrentLocalTimeAccordingToZoneIdAndPattern("Europe/London", "yyyy-MM-dd'T'HH:mm:ss"), 2);
             }
         }
-        RestAssured.baseURI = "https://api2-test.noqu.delivery";
-        RestAssured.basePath = "/v2";
+        CompletableFuture<List<String>> asyncGetLatLong = CompletableFuture.supplyAsync(() -> {
 
-        Response response =
-                given().
-                        contentType(ContentType.JSON).
-                        header("Authorization", UseBearerToken.INSTANCE.getBearerToken()).
-                        body(quoteRequest).
-                        when().
-                        log().body().
-                        post("/nds/immediateBooking").
-                        then().
-                        log().body().
-                        extract().response();
+            ResponseBody responseBody = null;
+            JsonNode responseJsonNode = null;
+            String latitude = null;
+            String longitude = null;
+            List<String> restAssuredLatLong = new ArrayList<>();
+            Geocode geocode = new Geocode();
+            for (int g = 0; g < quoteRequest.tasks.size(); g++) {
+                try {
+                    responseBody = geocode.getLatLong(quoteRequest.tasks.get(g).location.address.address1, quoteRequest.tasks.get(g).location.address.address2, quoteRequest.tasks.get(g).location.address.postcode, quoteRequest.tasks.get(g).location.address.city, quoteRequest.tasks.get(g).location.address.country);
+                } catch (IOException | InterruptedException | URISyntaxException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    assert responseBody != null;
+                    responseJsonNode = JacksonObjectMapper.convertStringToJsonNode(responseBody.asString());
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while converting geocoding api response");
+                }
+                JsonNode items = responseJsonNode.get("items");
 
-        clientResponse = response;
-    }
+                for (JsonNode item : items) {
+                    JsonNode address = item.get("address");
+                    String label = address.get("label").asText();
+                    JsonNode position = item.get("position");
+                    latitude = position.get("lat").asText();
+                    longitude = position.get("lng").asText();
+                }
+                restAssuredLatLong.add(g, latitude + ";" + longitude);
+            }
 
-    @Given("Take an authorization token and request to Quote for Single Scheduled Same Day Pickup")
-    public void takeAnAuthorizationTokenAndRequestToQuoteForSingleScheduledSameDayPickup() throws Exception {
-        List<NameValuePair> headers = new ArrayList<>();
-        headers.add(new BasicNameValuePair("Authorization", UseBearerToken.INSTANCE.getBearerToken()));
-        quoteRequest = JacksonObjectMapper.mapJsonFileToObject(QuoteRequest.class, "src/test/java/apicalls/payloads/quote/SingleScheduledSameDayPickup.json");
-        String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(quoteRequest)));
-        HttpResponse response =
-                ApacheHttpClient.sendRequest(
-                        HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 10000));
-        clientResponse = response;
-    }
+            return restAssuredLatLong;
+        });
 
-    @Given("Take an authorization token and request to Quote for Single Scheduled Any Other Day Pickup")
-    public void takeAnAuthorizationTokenAndRequestToQuoteForSingleScheduledAnyOtherDayPickup() throws Exception {
-        List<NameValuePair> headers = new ArrayList<>();
-        headers.add(new BasicNameValuePair("Authorization", UseBearerToken.INSTANCE.getBearerToken()));
-        quoteRequest = JacksonObjectMapper.mapJsonFileToObject(QuoteRequest.class, "src/test/java/apicalls/payloads/quote/SingleScheduledAnyOtherDayPickup.json");
-        String postingString = EntityUtils.toString(new StringEntity(JacksonObjectMapper.mapObjectToJsonAsString(quoteRequest)));
-        HttpResponse response =
-                ApacheHttpClient.sendRequest(
-                        HttpCallBuilder.POST.postUsingJsonAsString(EnvironmentDataProvider.APPLICATION.getPropertyValue("noquapiV2_QuoteURL"), postingString, headers, 10000));
-        clientResponse = response;
+        latLong = asyncGetLatLong.get();
+
+        CompletableFuture<List<String>> asyncGetPlusCode = CompletableFuture.supplyAsync(() -> {
+
+            Geocode geocode = new Geocode();
+            ResponseBody responseBody = null;
+            List<String> restAssuredPlusCodes = new ArrayList<>();
+
+
+            while (!asyncGetLatLong.isDone()) {
+                //do nothing
+            }
+
+            for (int h = 0; h < quoteRequest.tasks.size(); h++) {
+                try {
+                    responseBody = geocode.getPlusCode(latLong.get(h).split(";", -1)[0], latLong.get(h).split(";", -1)[1]);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    fail("Something went wrong while reverse geocoding");
+                }
+                assert responseBody != null;
+                restAssuredPlusCodes.add(h, responseBody.jsonPath().getString("plusCode"));
+            }
+            return restAssuredPlusCodes;
+        });
+
+
+        CompletableFuture<Response> asyncQuoteRequest = CompletableFuture.supplyAsync(() -> {
+
+            Response response = null;
+            try {
+
+                RestAssured.baseURI = "https://api2-test.noqu.delivery";
+                RestAssured.basePath = "/v2";
+
+                response =
+                        given().
+                                contentType(ContentType.JSON).
+                                header("Authorization", UseBearerToken.INSTANCE.getBearerToken()).
+                                body(quoteRequest).
+                                when().
+                                log().body().
+                                post("/nds/immediateBooking").
+                                then().
+                                log().body().
+                                extract().response();
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Something went wrong while sending the quote request");
+            }
+            assert response != null;
+            return response;
+        });
+
+        clientResponse = asyncQuoteRequest.get();
+        plusCodes = asyncGetPlusCode.get();
+
     }
 }
