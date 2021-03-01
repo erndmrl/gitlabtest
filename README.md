@@ -19,11 +19,11 @@ It is ready to use once pulled. The suggested IDE is IntelliJ Idea. Before pulli
 ## Executing the Tests
 
 ### From Your Local via IDE
-You can use the plugins that IDEs provide to run Cucumber feature files and scenarios via mouse click. To pass command line parameters in this case, you should edit the configurations and add parameters to VM options for this run from your IDE. The required configuration parameters are:
+You can use the plugins that IDEs provide to run Cucumber feature files and scenarios via mouse click. To pass command line parameters in this case, you should edit the configurations and add parameters to VM options for that test run, from your IDE. The required configuration parameters are:
 
 - **Main Class**: io.cucumber.core.cli.Main
 - **Glue**: stepdefs testprojectcore.stepdefs
-- **Program arguments**:  --plugin org.jetbrains.plugins.cucumber.java.run.CucumberJvm5SMFormatter
+- **Program arguments**: `IntelliJ Idea only`  --plugin org.jetbrains.plugins.cucumber.java.run.CucumberJvm5SMFormatter
 
 When Cucumber tags isn't declared explicitly, only the tests annotated with the tag inside @CucumberOptions in src/test/java/testprojectcore/runners/RunCucumberTest.java will be run
 ### From Anywhere Else
