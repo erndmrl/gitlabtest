@@ -25,9 +25,9 @@ You can use the plugins that IDEs provide to run Cucumber feature files and scen
 
 - **Main Class**: io.cucumber.core.cli.Main
 - **Glue**: stepdefs testprojectcore.stepdefs
-- **Program arguments**: `IntelliJ Idea only`  --plugin org.jetbrains.plugins.cucumber.java.run.CucumberJvm5SMFormatter
+- **Program arguments**(_IntelliJ Idea only_): --plugin org.jetbrains.plugins.cucumber.java.run.CucumberJvm5SMFormatter
 
-When Cucumber tags isn't declared explicitly, only the tests annotated with the tag inside @CucumberOptions in src/test/java/testprojectcore/runners/RunCucumberTest.java will be run
+When Cucumber tags aren't declared explicitly, only the tests annotated with the tag inside @CucumberOptions in src/test/java/testprojectcore/runners/RunCucumberTest.java will be run
 ### From Anywhere Else
 The best and the universal way of executing the tests in the framework is running a **Maven command**. The required Maven command is below:
 
@@ -43,11 +43,11 @@ mvn test
 
 #### System Parameters:
 
-- **configfilepath**: `Optional`. Parameter to declare the path of a [test configuration file](https://github.com/lineten/nova-cucumber-dpi-tests/blob/master/src/test/resources/config/config.txt). When not declared, it uses the file under _/src/test/resources/config/config.txt_ by default
-- **browser**: `Optional`. When not declared, it will take the value from the [test configuration file](https://github.com/lineten/nova-cucumber-dpi-tests/blob/master/src/test/resources/config/config.txt). When it is not present in config file also, it will use the default browser declared in [Property file for web test configuration](https://github.com/lineten/nova-cucumber-dpi-tests/blob/master/src/test/resources/propertyfiles/webconfig.properties). And eventually if it is not present in property file either, it will use Chrome. Case insensitive but use one of browser names while declaring: _"Chrome", "Firefox", "Safari", "Edge", "Opera"_ 
-- **env**: `Mandatory`. Environment. Case insensitive. Please be sure that the same name is used inside the test code so you may want to contact the QA team
-- **cucumber.filter.tags**: `Optional`. When not declared explicitly, only the tests annotated with the tag inside @CucumberOptions in _src/test/java/testprojectcore/runners/RunCucumberTest.java_ will be run
-- **grid**: `Optional`. Selenium Grid IP(if exists)
+- **configfilepath**: `optional`. Parameter to declare the path of a [test configuration file](https://github.com/lineten/nova-cucumber-dpi-tests/blob/master/src/test/resources/config/config.txt). When not declared, it uses the file under _/src/test/resources/config/config.txt_ by default
+- **browser**: `optional`. When not declared, it will take the value from the [test configuration file](https://github.com/lineten/nova-cucumber-dpi-tests/blob/master/src/test/resources/config/config.txt). When it is not present in config file also, it will use the default browser declared in [Property file for web test configuration](https://github.com/lineten/nova-cucumber-dpi-tests/blob/master/src/test/resources/propertyfiles/webconfig.properties). And eventually if it is not present in property file either, it will use Chrome. Case insensitive but use one of browser names while declaring: _"Chrome", "Firefox", "Safari", "Edge", "Opera"_ 
+- **env**: `mandatory`. Environment. Case insensitive. Please be sure that the same name is used inside the test code so you may want to contact the QA team
+- **cucumber.filter.tags**: `optional`. When not declared explicitly, only the tests annotated with the tag inside @CucumberOptions in _src/test/java/testprojectcore/runners/RunCucumberTest.java_ will be run
+- **grid**: `optional`. Selenium Grid IP(if exists)
 
 
 #### An Example Run Command:
