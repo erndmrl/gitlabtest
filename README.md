@@ -16,6 +16,8 @@ It is ready to use once pulled. The suggested IDE is IntelliJ Idea. Before pulli
 - Browsers matching with the Selenium drivers inside the project source installed(_you may want to contact QA team for browser version info_), 
 - Appium server installed **only if** you are going to run mobile tests.
 
+Selenium drivers are [inside the project source](https://github.com/lineten/nova-cucumber-dpi-tests/tree/master/src/test/resources/webdriver) so no need to do anything about it
+
 ## Executing the Tests
 
 ### From Your Local via IDE
@@ -75,3 +77,9 @@ You can share the state. It is achieved by dependency injection of type construc
 
 ### Reporting
 Integrated reporting tools are: [Allure](https://docs.qameta.io/allure/), [Cucumber Reports](https://reports.cucumber.io/), [Cucumber Reporting](https://github.com/damianszczepanik/cucumber-reporting)
+
+### Property Files
+The framework uses a configuration file which its path can be changed from command line and several property files:
+- **config.txt**: Parameters related to test execution that anyone should be able change externally
+- **webconfig.properties**: Property file consists of properties related to web testing that can only be changed through the code internally
+- **Other property files**: Same as above, related to the domains that the name suggests
