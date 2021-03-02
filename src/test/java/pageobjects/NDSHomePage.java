@@ -124,7 +124,7 @@ public class NDSHomePage extends Driver {
             while (nextPageButton.isDisplayed() && nextPageButton.isEnabled()) {
                 DriverUtils.waitUntil(ExpectedConditions.elementToBeClickable(nextPageButton), 5, driver);
                 clickNextPage();
-                Helper.waitForJavascriptToLoad(driver);
+                Thread.sleep(2000);     //Unfortunately
             }
             goToNextMonth();
             locateTheRowThatASpecificJobIdIsIn(jobId);

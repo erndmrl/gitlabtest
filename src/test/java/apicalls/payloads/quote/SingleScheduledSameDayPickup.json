@@ -1,12 +1,12 @@
 {
   "TransportType": [
     "car",
-    "Van",
-    "Bike",
-    "Motorbike",
+    "van",
+    "bike",
+    "motorbike",
     "walker"
   ],
-  "CallbackUrl": "a",
+  "CallbackUrl": "",
   "Notes": "",
   "ClientRef": "NDSV2506",
   "Tags": [

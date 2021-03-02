@@ -1,9 +1,9 @@
 {
   "TransportType": [
     "car",
-    "Van",
-    "Bike",
-    "Motorbike",
+    "van",
+    "bike",
+    "motorbike",
     "walker"
   ],
   "CallbackUrl": "",
@@ -18,7 +18,7 @@
   "DeliveryProvider": [
     "greenway_couriers"
   ],
-  "CallbackUrl": "https://en55m1hbpojzscq.m.pipedream.net",
+  "CallbackUrl": "",
   "Tasks": [
     {
       "Type": "pickup",

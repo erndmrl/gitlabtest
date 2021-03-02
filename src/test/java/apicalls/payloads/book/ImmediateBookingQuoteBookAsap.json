@@ -1,5 +1,4 @@
 {
-
   "TransportType": [
     "car",
     "van"
@@ -14,6 +13,9 @@
     "scan_barcode"
   ],
   "Labels": [
+  ],
+  "DeliveryProvider": [
+    "greenway_couriers"
   ],
   "Tasks": [
     {
