@@ -83,3 +83,7 @@ The framework uses a configuration file which its path can be changed from comma
 - **config.txt**: Parameters related to test execution that anyone should be able change externally
 - **webconfig.properties**: Property file consists of properties related to web testing that can only be changed through the code internally
 - **Other property files**: Same as above, related to the domains that the name suggests
+
+---
+## Docker
+You can use the Dockerfile to run the Maven command
