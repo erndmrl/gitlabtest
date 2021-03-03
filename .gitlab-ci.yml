@@ -1,3 +1,5 @@
+image: erendemirel/maven_openjdk_selenium:tagname
+
 build:
   stage: build
   script:
