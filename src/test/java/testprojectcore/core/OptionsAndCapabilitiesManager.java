@@ -22,7 +22,11 @@ class OptionsAndCapabilitiesManager {
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.addArguments("--disable-popup-blocking");
         chromeOptions.addArguments("--disable-notifications");
-        //chromeOptions.addArguments("--headless");
+        //Below 4 options are a workaround for Chromedriver bug. See https://bugs.chromium.org/p/chromedriver/issues/detail?id=2473
+        chromeOptions.addArguments("--headless");
+        chromeOptions.addArguments("--no-sandbox");
+        chromeOptions.addArguments("--disable-dev-shm-usage");
+        chromeOptions.addArguments("--disable-gpu");
         if (TestConfigProvider.WEBTESTPROPERTIES.getPropertyValue("performanceLogs").equals("enabled") ||
                 TestConfigProvider.WEBTESTPROPERTIES.getPropertyValue("performanceLogs").equals("true")) {
             LoggingPreferences logPrefs = new LoggingPreferences();

@@ -35,3 +35,4 @@ RUN wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/`cu
 RUN unzip /tmp/chromedriver.zip -d /app/bin/ \
     && rm /tmp/chromedriver.zip \
     && rm -rf /var/lib/apt/lists/*
+RUN chmod +x /app/bin/chromedriver
